@@ -1,0 +1,35 @@
+EXCLUDE_QUERY_DIR
+B /home/ghiles/.opam/4.08.1/lib/base
+B /home/ghiles/.opam/4.08.1/lib/base/caml
+B /home/ghiles/.opam/4.08.1/lib/base/shadow_stdlib
+B /home/ghiles/.opam/4.08.1/lib/ocaml-compiler-libs/common
+B /home/ghiles/.opam/4.08.1/lib/ocaml-compiler-libs/shadow
+B /home/ghiles/.opam/4.08.1/lib/ocaml-migrate-parsetree
+B /home/ghiles/.opam/4.08.1/lib/ocaml/compiler-libs
+B /home/ghiles/.opam/4.08.1/lib/ppx_derivers
+B /home/ghiles/.opam/4.08.1/lib/ppxlib
+B /home/ghiles/.opam/4.08.1/lib/ppxlib/ast
+B /home/ghiles/.opam/4.08.1/lib/ppxlib/print_diff
+B /home/ghiles/.opam/4.08.1/lib/ppxlib/traverse_builtins
+B /home/ghiles/.opam/4.08.1/lib/result
+B /home/ghiles/.opam/4.08.1/lib/sexplib0
+B /home/ghiles/.opam/4.08.1/lib/stdio
+B _build/default/.parsley.objs/byte
+S /home/ghiles/.opam/4.08.1/lib/base
+S /home/ghiles/.opam/4.08.1/lib/base/caml
+S /home/ghiles/.opam/4.08.1/lib/base/shadow_stdlib
+S /home/ghiles/.opam/4.08.1/lib/ocaml-compiler-libs/common
+S /home/ghiles/.opam/4.08.1/lib/ocaml-compiler-libs/shadow
+S /home/ghiles/.opam/4.08.1/lib/ocaml-migrate-parsetree
+S /home/ghiles/.opam/4.08.1/lib/ocaml/compiler-libs
+S /home/ghiles/.opam/4.08.1/lib/ppx_derivers
+S /home/ghiles/.opam/4.08.1/lib/ppxlib
+S /home/ghiles/.opam/4.08.1/lib/ppxlib/ast
+S /home/ghiles/.opam/4.08.1/lib/ppxlib/print_diff
+S /home/ghiles/.opam/4.08.1/lib/ppxlib/traverse_builtins
+S /home/ghiles/.opam/4.08.1/lib/result
+S /home/ghiles/.opam/4.08.1/lib/sexplib0
+S /home/ghiles/.opam/4.08.1/lib/stdio
+S .
+B .
+FLG -open Parsley__ -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs
