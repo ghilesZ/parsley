@@ -1,8 +1,39 @@
+(* raised when a string does not match the format defined by OCaml's lexer *)
 exception BadFormat of string
 
+(* error msg utility *)
 let bad_prefix c =
   let msg = "unrecognized prefix for integer litterals:" in
   Format.asprintf "%s %c" msg c
+
+(* removes begining zeros of string *)
+let trail_begining_zeros s =
+  let cpt = ref 0 in
+  try
+    String.iter (fun c -> if c = '0' then incr cpt else raise Exit) s;
+    (* only zeros in the representation *)
+    "0"
+  with Exit -> String.sub s !cpt (String.length s - !cpt)
+
+(* Compares two string representation of an integer in the same format
+   (eg both in decimal format or both in octal) and return true if
+   they are semantically equivalent. *)
+let compare_ints s1 s2 =
+  let s1 = trail_begining_zeros s1 in
+  let s2 = trail_begining_zeros s2 in
+  if String.length s1 = String.length s2 then s1 = s2
+  else
+    (* s1 is smaller than s2 *)
+    let aux s1 s2 =
+      let size_s1 = String.length s1 and size_s2 = String.length s2 in
+      let begining = String.sub s2 0 size_s1 in
+      let ending = String.sub s2 size_s1 (size_s2 - size_s1) in
+      (begining = s1) &&
+        (try String.iter (fun c -> if c <> '0' then raise Exit) ending;
+             true
+         with Exit -> false)
+    in
+    if String.length s1 >  String.length s2 then aux s2 s1 else aux s1 s2
 
 let compare_floats s1 s2 =
   if String.length s1 = String.length s2 then s1 = s2
