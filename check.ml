@@ -15,26 +15,36 @@ let trail_begining_zeros s =
     "0"
   with Exit -> String.sub s !cpt (String.length s - !cpt)
 
+(* trails leading zeros and removes '_' char *)
+let normalize str =
+  let remove__ s =
+    let cpt = ref 0 in
+    String.iter (function '_' -> incr cpt | _ -> ()) s;
+    let s' = Bytes.make (String.length s - !cpt) ' ' in
+    let cpt2 = ref 0 in
+    String.iteri (fun i c -> if c = '_' then incr cpt2
+                             else Bytes.set s' (i- !cpt2) c) s;
+    Bytes.to_string s'
+  in
+  str |> remove__ |> trail_begining_zeros
+
 (* Compares two string representation of an integer in the same format
-   (eg both in decimal format or both in octal) and return true if
+   (eg both in decimal format or both in octal) and return true iff
    they are semantically equivalent. *)
 let compare_ints s1 s2 =
-  let s1 = trail_begining_zeros s1 in
-  let s2 = trail_begining_zeros s2 in
-  if String.length s1 = String.length s2 then s1 = s2
-  else
-    (* s1 is smaller than s2 *)
-    let aux s1 s2 =
-      let size_s1 = String.length s1 and size_s2 = String.length s2 in
-      let begining = String.sub s2 0 size_s1 in
-      let ending = String.sub s2 size_s1 (size_s2 - size_s1) in
-      (begining = s1) &&
-        (try String.iter (fun c -> if c <> '0' then raise Exit) ending;
-             true
-         with Exit -> false)
-    in
-    if String.length s1 >  String.length s2 then aux s2 s1 else aux s1 s2
+  let s1 = normalize s1 in
+  let s2 = normalize s2 in
+  let size_1 = String.length s1 in
+  let size_2 = String.length s2 in
+  size_1 = size_2 && s1 = s2
 
+(* Compares two string representation of a float in the same format
+   (eg both in decimal format or both in hexa) and return true iff
+   they are semantically equivalent.
+   Two floats are semantically equivalent if:
+   - TODO
+   - TODO
+*)
 let compare_floats s1 s2 =
   if String.length s1 = String.length s2 then s1 = s2
   else
