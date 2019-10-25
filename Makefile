@@ -13,10 +13,10 @@ test: exe
 	./$(EXE)
 
 exe: ppx
-	$(CC) test.ml -ppx "./$(PP) -as-ppx" -o $(EXE)
+	$(CC) test.ml $(PPX) -o $(EXE)
 
 ppx:
-	$(CC) check.ml parsley.ml -linkpkg -package $(LIBS) -o $(PP) $(PPX)
+	$(CC) check.ml parsley.ml -linkpkg -package $(LIBS) -o $(PP)
 
 clean:
 	rm -f `find . -name "*.o"`
