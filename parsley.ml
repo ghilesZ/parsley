@@ -1,54 +1,144 @@
-open Ast_mapper
-open Parsetree
+open Utils
 
-(* msg error utility *)
-let litteral_error_msg lit typ =
-  Format.asprintf "The litteral %s can not be exactly encoded as %s." lit typ
+(** the different kinds of litteral corresponding to the (Pconst_int) ast node *)
+type integer_kind =
+  | Native (* 1n *)
+  | Int32  (* 1l *)
+  | Int64  (* 1L *)
+  | Int    (* 1  *)
 
-(* report building utility *)
-let build_report str_ast str_repr typ loc =
-  let open Location in
-  let msg fmt =
-    let msg1 = litteral_error_msg str_ast typ in
-    let msg2 = Format.asprintf "The value %s was used instead" str_repr in
-    Format.fprintf fmt "%s %s" msg1 msg2
+(** the different kinds of base for litteral numbers *)
+(* WARNING: floats can only be in Hexa or Decimal *)
+type base_kind =
+  | Hexadecimal    (* 11 *)
+  | Decimal        (* 17 *)
+  | Octal          (* 0o21 *)
+  | Binary         (* 0b10001 *)
+
+(** the different kind of notation for floats *)
+type float_notation =
+  | Regular of string            (* 100.5 *)
+  | Scientific of string*string  (* 1.005e2 *)
+
+(** raised when a string does not match the format defined by OCaml's
+   lexer for floats and integer litterals *)
+exception BadFormat of string
+
+(** error msg utility *)
+let bad_prefix s =
+  let msg = "unrecognized prefix for litterals:" in
+  Format.asprintf "%s %s" msg s
+
+(** error msg utility *)
+let bad_suffix s =
+  let msg = "unrecognized suffix for litterals:" in
+  Format.asprintf "%s %c" msg s
+
+(** Removes all occurences of the character '_'  *)
+let remove__ s =
+  let nb_occ = ref 0 in
+  String.iter (function '_' -> incr nb_occ | _ -> ()) s;
+  let s' = Bytes.make (String.length s - !nb_occ) ' ' in
+  let nb_cur = ref 0 in
+  String.iteri (fun i c -> if c = '_' then incr nb_cur
+                           else Bytes.set s' (i- !nb_cur) c) s;
+  Bytes.to_string s'
+
+let normalize str =
+  str |> remove__
+
+(** Categorizes a non-empty string into an integer_kind. Returns the
+   pair formed by the string where the suffixes (n,l,L) where removed
+   if present, and the corresponding integer_kind *)
+let categorize_repr int_str =
+  let before_last_idx = String.length int_str -1 in
+  match int_str.[before_last_idx] with
+  | 'n' -> (String.sub int_str 0 before_last_idx), Native
+  | 'l' -> (String.sub int_str 0 before_last_idx), Int32
+  | 'L' -> (String.sub int_str 0 before_last_idx), Int64
+  | '0'..'9' | '_' -> int_str, Int
+  | x -> raise (BadFormat (bad_suffix x))
+
+(** categorizes a non-empty string into a base. Returns the pair
+   formed by the string where the prefixes (0o,0x,0b) where removed if
+   present, and the corresponding base *)
+let categorize_base str =
+  let size = String.length str in
+  if size > 2 then
+    match str.[0],str.[1] with
+    | '0','x' -> String.sub str 2 (size-2),Hexadecimal
+    | '0','o' -> String.sub str 2 (size-2),Octal
+    | '0','b' -> String.sub str 2 (size-2),Binary
+    | ('0'..'9' | '_'),('0'..'9' | '_' | '.') -> str,Decimal
+    | _ -> raise (BadFormat (bad_prefix str))
+  else str,Decimal
+
+(** Given a non-empty string representation of a float, and a base
+   (either hexa or decimal), computes the associated float_notation *)
+let categorize_notation str base =
+  let char_exp =
+    match base with
+    | Hexadecimal -> 'P'
+    | Decimal -> 'E'
+    | _ -> assert false
   in
-  {kind=Report_warning ("Parsley.warning");
-   main={txt=msg;loc};
-   sub=[];
-  }
+  match String.split_on_char char_exp str with
+  | [s] -> Regular s
+  | [mant;exp] -> Scientific (mant,exp)
+  | _ -> assert false
 
-(* builds the report warning corresponding to the loss of precision *)
-(* that occured during the parsing of a floatting value *)
-let build_report_float str_ast str_repr loc =
-  build_report str_ast str_repr "a float" loc
+let i_of_char = function
+  | '0'..'9' as x -> int_of_char x - 48
+  | 'a'..'f' as x -> int_of_char x - 87
+  | 'A'..'F' as x -> int_of_char x - 55
+  | c -> failwith (Format.asprintf "%c is not a valid numerical character" c)
 
-(* builds the report warning corresponding to the loss of precision *)
-(* that occured during the parsing of an integer value *)
-let build_report_int str_ast str_repr loc =
-  build_report str_ast str_repr "an int" loc
+let q_of_char x = i_of_char x |> Q.of_int
 
-(* Checks that floatting point are encoded exactly within a float *)
-let expr_mapper mapper _ =
-  let exprf default_expr mapper = function
-    | {pexp_desc = (Pexp_constant (Pconst_float(s,None))); pexp_loc;_} as x ->
-       if not (Check.exact_parse_float s) then begin
-           let repr = Check.print_repr_float s in
-           let report = build_report_float s repr  pexp_loc in
-           Format.printf "%a" Location.print_report  report
-         end;
-       x
-    |  x -> default_expr mapper x
+(** Computes exactly the rational corresponding to the litteral in the
+   given base. Works for both integers and floats, for all bases *)
+let parse_base b lit =
+  let q_base = Q.of_int b in
+  let size_lit = String.length lit in
+  let integer_part,decimal_part =
+    try
+      let dot =  String.index lit '.' in
+      (String.sub lit 0 dot),(String.sub lit (dot+1) (size_lit-dot-1))
+    with Not_found -> lit,""
   in
-  {mapper with expr = (exprf mapper.expr)}
+  let i,_ = string_fold (fun (acc,i) c ->
+                (Q.add (Q.mul (q_of_char c) i) acc),(Q.mul i q_base)
+              ) (Q.zero,Q.one) (string_rev integer_part) in
+  let d,_ = string_fold (fun (acc,i) c ->
+                (Q.add (Q.div (q_of_char c) i) acc),(Q.mul i q_base)
+              ) (Q.zero,q_base) decimal_part in
+  Q.add i d
 
-(* mapper composition *)
-let build_mapper mappers : string list -> Ast_mapper.mapper =
-  fun x ->
-  List.fold_left (fun acc newmapper ->
-       (newmapper acc x)
-     ) default_mapper mappers
+(** builds the rationnal corresponding to a string following OCaml's
+   lexical conventions:
+	|  [-] (0…9) { 0…9 ∣  _ }
+ 	|	 [-] (0x∣ 0X) (0…9∣ A…F∣ a…f) { 0…9∣ A…F∣ a…f∣ _ }
+ 	|	 [-] (0o∣ 0O) (0…7) { 0…7∣ _ }
+ 	|	 [-] (0b∣ 0B) (0…1) { 0…1∣ _ } *)
+let rat_of_string litteral =
+  let str,base = categorize_base litteral in
+  let normalized_litteral = normalize str in
+  let b = match base with
+  | Hexadecimal -> 16
+  | Decimal     -> 10
+  | Octal       -> 8
+  | Binary      -> 2
+  in parse_base b normalized_litteral
 
-(* entry point *)
-let () =
-  build_mapper [expr_mapper] |> register "parsley"
+let exact_of_string num_of_string q_of_num x =
+  let i = num_of_string x in
+  let r = rat_of_string x in
+  let ir = q_of_num i in
+  if ir = r then Ok r
+  else Error i
+
+let exact_int_of_string = exact_of_string int_of_string Q.of_int
+let exact_int32_of_string = exact_of_string Int32.of_string Q.of_int32
+let exact_int64_of_string = exact_of_string Int64.of_string Q.of_int64
+let exact_native_of_string = exact_of_string Nativeint.of_string Q.of_nativeint
+let exact_float_of_string = exact_of_string float_of_string Q.of_float

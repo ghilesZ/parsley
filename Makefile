@@ -1,13 +1,13 @@
 CC   = ocamlfind ocamlc
 EXE  = test
 PP   = preprocess
-LIBS = compiler-libs.common
+LIBS = -linkpkg -package compiler-libs.common -package zarith
 PPX  = -ppx "./$(PP) -as-ppx"
 
 all: exe
 
 bootstrap: ppx
-	$(CC) check.ml parsley.ml -linkpkg -package $(LIBS) -o $(PP) $(PPX)
+	$(CC) parsley.ml ppx_parsley.ml -linkpkg -package $(LIBS) -o $(PP) $(PPX)
 
 test: exe
 	./$(EXE)
@@ -16,7 +16,7 @@ exe: ppx
 	$(CC) test.ml $(PPX) -o $(EXE)
 
 ppx:
-	$(CC) check.ml parsley.ml -linkpkg -package $(LIBS) -o $(PP)
+	$(CC) utils.ml parsley.ml ppx_parsley.ml $(LIBS) -o $(PP)
 
 clean:
 	rm -f `find . -name "*.o"`
