@@ -1,43 +1,84 @@
 open Ast_mapper
 open Parsetree
 
-(* msg error utility *)
-let litteral_error_msg lit typ =
-  Format.asprintf "The litteral %s can not be exactly encoded as %s." lit typ
+(* shortcut *)
+let fas = Format.asprintf
+
+(* error msg utilities *)
+let int_error_msg lit =
+  fas "The litteral %s can not be exactly encoded as an integer" lit
+
+let float_error_msg lit =
+  fas "The litteral %s can not be exactly encoded as a float" lit
+
+let int32_error_msg lit =
+  fas "The litteral %s can not be exactly encoded as an int32" lit
+
+let int64_error_msg lit =
+  fas "The litteral %s can not be exactly encoded as an int64" lit
+
+let native_error_msg lit =
+  fas "The litteral %s can not be exactly encoded as a native int" lit
 
 (* report building utility *)
-let build_report str_ast result typ to_string loc =
+let build_report msg1 msg2 loc =
   let open Location in
-  let msg fmt =
-    let msg1 = litteral_error_msg str_ast typ in
-    let msg2 =
-      match result with
-      | Some v -> Format.asprintf "The value %s was used instead" (to_string v)
-      | None -> Format.asprintf "An unknown value will be used instead"
-    in Format.fprintf fmt "%s %s" msg1 msg2
-  in
+  let msg fmt = Format.fprintf fmt "%s %s" msg1 msg2 in
   {kind=Report_warning ("Parsley.warning");
    main={txt=msg;loc};
    sub=[];}
 
 (* builds the report warning corresponding to the loss of precision *)
 (* that occured during the parsing of a floatting value *)
-let build_report_float str_ast str_repr loc =
-  build_report str_ast str_repr "a float" (Parsley.exact_string_of_float) loc
+let build_report_float f f' loc =
+  let msg1 = float_error_msg f in
+  let msg2 =
+    let open Parsley in
+    match f' with
+    | Some v -> fas "The value %s was used instead" (exact_string_of_float v)
+    | None -> fas "An unknown value will be used instead"
+  in  build_report msg1 msg2 loc
 
 (* builds the report warning corresponding to the loss of precision *)
 (* that occured during the parsing of an integer value *)
-let build_report_int str_ast str_repr loc =
-  build_report str_ast str_repr "an int" string_of_int loc
+let build_report_int i i' loc =
+  let msg1 = int_error_msg i in
+  let msg2 =
+    let open Parsley in
+    match i' with
+    | Some v -> fas "The value %i was used instead" v
+    | None ->
+       (* int_of_string fails on max_int+1 but OCaml's lexer accepts it *)
+       try fas "The value %i was used instead" (Misc.Int_literal_converter.int i)
+       with Failure _ -> fas "An unknown value will be used instead"
+  in  build_report msg1 msg2 loc
 
-let build_report_32 str_ast str_repr loc =
-  build_report str_ast str_repr "an int32" (Format.asprintf "%li") loc
+let build_report_32 i i' loc =
+  let msg1 = int_error_msg i in
+  let msg2 =
+    let open Parsley in
+    match i' with
+    | Some v -> fas "The value %li was used instead" v
+    | None -> fas "An unknown value will be used instead"
+  in  build_report msg1 msg2 loc
 
-let build_report_64 str_ast str_repr loc =
-  build_report str_ast str_repr "an int64" (Format.asprintf "%Li") loc
+let build_report_64  i i' loc =
+  let msg1 = int_error_msg i in
+  let msg2 =
+    let open Parsley in
+    match i' with
+    | Some v -> fas "The value %Li was used instead" v
+    | None -> fas "An unknown value will be used instead"
+  in  build_report msg1 msg2 loc
 
-let build_report_native str_ast str_repr loc =
-  build_report str_ast str_repr "a native int" (Format.asprintf "%ni") loc
+let build_report_native  i i' loc =
+  let msg1 = int_error_msg i in
+  let msg2 =
+    let open Parsley in
+    match i' with
+    | Some v -> fas "The value %ni was used instead" v
+    | None -> fas "An unknown value will be used instead"
+  in  build_report msg1 msg2 loc
 
 (* Checks that floatting point are encoded exactly within a float *)
 let expr_mapper mapper _ =

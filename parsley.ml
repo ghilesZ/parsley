@@ -138,12 +138,12 @@ let parse_mant_exp b lit =
   | _ -> assert false
 
 (** builds the rationnal corresponding to a string following OCaml's
-   lexical conventions:
-	|  [-] (0…9) { 0…9 ∣  _ }
- 	|	 [-] (0x) (0…9∣ A…F∣ a…f) { 0…9∣ A…F∣ a…f∣ _ }
- 	|	 [-] (0o) (0…7) { 0…7∣ _ }
- 	|	 [-] (0b) (0…1) { 0…1∣ _ } *)
-let rat_of_string litteral =
+   lexical conventions :
+	|  (0…9) { 0…9 ∣  _ }
+ 	|	 (0x) (0…9∣ A…F∣ a…f) { 0…9∣ A…F∣ a…f∣ _ }
+ 	|	 (0o) (0…7) { 0…7∣ _ }
+ 	|	 (0b) (0…1) { 0…1∣ _ } *)
+let positive_rat_of_string litteral =
   let str,base = categorize_base litteral in
   let normalized_litteral = remove__ str in
   let b = match base with
@@ -153,7 +153,21 @@ let rat_of_string litteral =
   | Binary      -> 2
   in parse_base b normalized_litteral
 
-let exact_of_string num_of_string q_of_num x =
+(** builds the rationnal corresponding to a string following OCaml's
+   lexical conventions :
+	| [-] (0…9) { 0…9 ∣  _ }
+ 	|	[-] (0x) (0…9∣ A…F∣ a…f) { 0…9∣ A…F∣ a…f∣ _ }
+ 	|	[-] (0o) (0…7) { 0…7∣ _ }
+ 	|	[-] (0b) (0…1) { 0…1∣ _ } *)
+let rat_of_string lit =
+  if lit.[0] = '-' then
+    Q.neg (positive_rat_of_string (String.sub lit 1 (String.length lit -1)))
+  else (positive_rat_of_string lit)
+
+(** builds an 'of_string' that convert a string representation of a
+   value of a numeric type, to its corresponding value, while
+   indicating if a loss of precision occured during the conversion *)
+let build_os num_of_string q_of_num x =
   let i = num_of_string x in
   let r = rat_of_string x in
   match i with
@@ -163,11 +177,11 @@ let exact_of_string num_of_string q_of_num x =
      if ir = r then Ok i
      else Error (Some i)
 
-let exact_int_of_string = exact_of_string int_of_string_opt Q.of_int
-let exact_int32_of_string = exact_of_string Int32.of_string_opt Q.of_int32
-let exact_int64_of_string = exact_of_string Int64.of_string_opt Q.of_int64
-let exact_native_of_string = exact_of_string Nativeint.of_string_opt Q.of_nativeint
-let exact_float_of_string = exact_of_string float_of_string_opt Q.of_float
+let exact_int_of_string    = build_os int_of_string_opt Q.of_int
+let exact_int32_of_string  = build_os Int32.of_string_opt Q.of_int32
+let exact_int64_of_string  = build_os Int64.of_string_opt Q.of_int64
+let exact_native_of_string = build_os Nativeint.of_string_opt Q.of_nativeint
+let exact_float_of_string  = build_os float_of_string_opt Q.of_float
 
 (**************************)
 (* Message error handling *)
