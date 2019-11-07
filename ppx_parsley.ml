@@ -5,20 +5,8 @@ open Parsetree
 let fas = Format.asprintf
 
 (* error msg utilities *)
-let int_error_msg lit =
-  fas "The litteral %s can not be exactly encoded as an integer" lit
-
-let float_error_msg lit =
-  fas "The litteral %s can not be exactly encoded as a float" lit
-
-let int32_error_msg lit =
-  fas "The litteral %s can not be exactly encoded as an int32" lit
-
-let int64_error_msg lit =
-  fas "The litteral %s can not be exactly encoded as an int64" lit
-
-let native_error_msg lit =
-  fas "The litteral %s can not be exactly encoded as a native int" lit
+let error_msg lit typ_str =
+  fas "The litteral %s can not be exactly encoded as %s" lit typ_str
 
 (* report building utility *)
 let build_report msg1 msg2 loc =
@@ -31,7 +19,7 @@ let build_report msg1 msg2 loc =
 (* builds the report warning corresponding to the loss of precision *)
 (* that occured during the parsing of a floatting value *)
 let build_report_float f f' loc =
-  let msg1 = float_error_msg f in
+  let msg1 = error_msg f "a float" in
   let msg2 =
     let open Parsley in
     match f' with
@@ -42,7 +30,7 @@ let build_report_float f f' loc =
 (* builds the report warning corresponding to the loss of precision *)
 (* that occured during the parsing of an integer value *)
 let build_report_int i i' loc =
-  let msg1 = int_error_msg i in
+  let msg1 = error_msg i "an int" in
   let msg2 =
     let open Parsley in
     match i' with
@@ -54,7 +42,7 @@ let build_report_int i i' loc =
   in  build_report msg1 msg2 loc
 
 let build_report_32 i i' loc =
-  let msg1 = int_error_msg i in
+  let msg1 = error_msg i "an int32" in
   let msg2 =
     let open Parsley in
     match i' with
@@ -62,8 +50,8 @@ let build_report_32 i i' loc =
     | None -> fas "An unknown value will be used instead"
   in  build_report msg1 msg2 loc
 
-let build_report_64  i i' loc =
-  let msg1 = int_error_msg i in
+let build_report_64 i i' loc =
+  let msg1 = error_msg i "an int64" in
   let msg2 =
     let open Parsley in
     match i' with
@@ -72,7 +60,7 @@ let build_report_64  i i' loc =
   in  build_report msg1 msg2 loc
 
 let build_report_native  i i' loc =
-  let msg1 = int_error_msg i in
+  let msg1 = error_msg i "a native int" in
   let msg2 =
     let open Parsley in
     match i' with
@@ -80,7 +68,6 @@ let build_report_native  i i' loc =
     | None -> fas "An unknown value will be used instead"
   in  build_report msg1 msg2 loc
 
-(* Checks that floatting point are encoded exactly within a float *)
 let expr_mapper mapper _ =
   let exprf default_expr mapper = function
     | {pexp_desc = (Pexp_constant (Pconst_float(f,None))); pexp_loc;_} as x ->
