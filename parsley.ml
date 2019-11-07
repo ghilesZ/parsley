@@ -182,11 +182,3 @@ let exact_int32_of_string  = build_os Int32.of_string_opt Q.of_int32
 let exact_int64_of_string  = build_os Int64.of_string_opt Q.of_int64
 let exact_native_of_string = build_os Nativeint.of_string_opt Q.of_nativeint
 let exact_float_of_string  = build_os float_of_string_opt Q.of_float
-
-(**************************)
-(* Message error handling *)
-(**************************)
-
-let exact_string_of_float f =
-  (* overkill precision than trail ending zeros *)
-  Format.asprintf "%.1000f" f |> trail_ending_zeros

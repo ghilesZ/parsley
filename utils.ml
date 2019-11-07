@@ -35,3 +35,8 @@ let trail_beginning_zeros str =
 (** removes ending zeros of a string *)
 let trail_ending_zeros str =
   str |> string_rev |> trail_beginning_zeros |> string_rev
+
+(** exactish string_of_float *)
+let exact_string_of_float f =
+  (* overkill precision than trail ending zeros *)
+  Format.asprintf "%.1000f" f |> trail_ending_zeros
