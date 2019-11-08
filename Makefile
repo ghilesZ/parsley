@@ -1,27 +1,20 @@
-CC   = ocamlfind ocamlc
-EXE  = test
-PP   = preprocess
-LIBS = -linkpkg -package compiler-libs.common -package zarith
-PPX  = -ppx "./$(PP) -as-ppx"
+# Frontend to dune.
 
-all: exe
+.PHONY: default build install uninstall test clean
 
-bootstrap: ppx
-	$(CC) parsley.ml ppx_parsley.ml -linkpkg -package $(LIBS) -o $(PP) $(PPX)
+default: build
 
-test: exe
-	./$(EXE)
+build:
+	dune build
 
-exe: ppx
-	$(CC) test.ml $(PPX) -o $(EXE)
+test:
+	dune runtest -f
 
-ppx:
-	$(CC) utils.ml parsley.ml ppx_parsley.ml $(LIBS) -o $(PP)
+install:
+	dune install
+
+uninstall:
+	dune uninstall
 
 clean:
-	rm -f `find . -name "*.o"`
-	rm -f `find . -name "*.a"`
-	rm -f `find . -name "*.cm*"`
-	rm -f `find . -name "*~"`
-	rm -f `find . -name "\#*"`
-	rm -f $(PP) $(EXE)
+	dune clean
