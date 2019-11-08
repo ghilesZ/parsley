@@ -12,7 +12,8 @@ obtains with the one obtained by OCaml's standard of_string utilities
 
 ### PPX
 You can use Parsley's functionnalities on your OCaml source code using
-the ppx that goes with the library
+the ppx that goes with the library. It generates pretty warning messages
+using OCaml's warning styles as in the following examples.
 
 ##### todo example
 
