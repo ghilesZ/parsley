@@ -19,7 +19,7 @@ run-test: [
 ]
 depends: [
   "dune" {build}
-  "zarith" {>= "4.08"}
+  "zarith"
 ]
 
 synopsis: "Parsley library"
