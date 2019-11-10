@@ -1,6 +1,3 @@
-url {
-  src: "https://github.com/ghilesZ/parsley/archive/0.0.1.tar.gz"
-}
 opam-version: "2.0"
 maintainer: "Ghiles Ziat <ghiles.ziat@lip6.fr>"
 authors: [
