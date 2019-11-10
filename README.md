@@ -1,9 +1,9 @@
-# Parsley
+# Parsley [![Build Status](https://travis-ci.com/ghilesZ/parsley.svg?branch=master)](https://travis-ci.com/ghilesZ/parsley)
 Parsley provides utilities to convert a string representation of an
 OCaml numeric value (float, int32, int64, native) to the corresponding
 value while indicating if a loss of precision occured during the
-conversion using the [Result]
-(https://caml.inria.fr/pub/docs/manual-ocaml/libref/Result.html)q
+conversion using the
+[Result](https://caml.inria.fr/pub/docs/manual-ocaml/libref/Result.html)
 module of OCaml to do that.
 
 ### How?
