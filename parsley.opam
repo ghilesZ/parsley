@@ -8,8 +8,8 @@ authors: [
 ]
 homepage: "https://github.com/ghilesZ/parsley"
 bug-reports: "https://github.com/ghilesZ/parsley/issues"
-dev-repo: "git+https://github.com/ghilesZ/parsley/AbSolute"
-license: "LGPL"
+dev-repo: "git+https://github.com/ghilesZ/parsley"
+license: "MIT"
 build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name "-j" jobs]
