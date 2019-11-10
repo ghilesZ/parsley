@@ -2,7 +2,9 @@
 Parsley provides utilities to convert a string representation of an
 OCaml numeric value (float, int32, int64, native) to the corresponding
 value while indicating if a loss of precision occured during the
-conversion.
+conversion using the [Result]
+(https://caml.inria.fr/pub/docs/manual-ocaml/libref/Result.html)q
+module of OCaml to do that.
 
 ### How?
 Parsley parses the string using arbitrary precision integers and
