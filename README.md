@@ -1,10 +1,10 @@
 # Parsley [![Build Status](https://travis-ci.com/ghilesZ/parsley.svg?branch=master)](https://travis-ci.com/ghilesZ/parsley)
-Parsley provides utilities to convert a string representation of an
-OCaml numeric value (float, int32, int64, native) to the corresponding
-value while indicating if a loss of precision occured during the
-conversion using the
+
+Parsley provides conversions between OCaml's numeric types (float,
+int32, int64, native) while indicating if a loss of precision occured
+during the conversion. It uses the
 [Result](https://caml.inria.fr/pub/docs/manual-ocaml/libref/Result.html)
-module of OCaml to do that.
+module of OCaml to do that as in the following example:
 
 ### How?
 Parsley parses the string using arbitrary precision integers and
@@ -24,3 +24,7 @@ using OCaml's warning styles as in the following examples.
 
 ## Compatibility:
 - OCaml >= 4.08
+
+## Licence:
+This Library is distributed under the terms of the MIT license.  See
+the LICENSE.md file for details.
