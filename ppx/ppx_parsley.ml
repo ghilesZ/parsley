@@ -29,14 +29,13 @@ let report_float f f' =
   (* string_of_float uses approximations, so we use parsley's string of float *)
   build_report f f' "a float" Parsley.exact_string_of_float
 
-let report_32 i i' = build_report i i' "an int32" (Format.asprintf "%li")
+let report_32 i i' = build_report i i' "an int32" (fas "%li")
 
-let report_64 i i' = build_report i i' "an int64" (Format.asprintf "%Li")
+let report_64 i i' = build_report i i' "an int64" (fas "%Li")
 
-let report_native i i' = build_report i i' "a native int" (Format.asprintf "%ni")
+let report_native i i' = build_report i i' "a native int" (fas "%ni")
 
-(* builds the report warning corresponding to the loss of precision *)
-(* that occured during the parsing of an integer value *)
+(* report warning for integers *)
 let build_report_int i i' loc =
   let msg1 = error_msg i "an int" in
   let msg2 =
