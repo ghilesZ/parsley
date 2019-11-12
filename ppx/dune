@@ -1,5 +1,4 @@
 (library
-  (name        ppx_parsley)
-  (public_name ppx_parsley)  
+  (name        ppx_parsley)  
   (kind ppx_rewriter)
   (libraries ppxlib parsley))
