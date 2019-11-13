@@ -29,7 +29,8 @@ let split_on str (p:char -> bool) =
 (** removes beginning zeros of a string *)
 let trail_beginning_zeros str =
   let cpt = ref 0 in
-  String.iter (function '0' -> incr cpt; | _ -> ()) str;
+  (try String.iter (function '0' -> incr cpt; | _ -> raise Exit) str
+  with Exit -> ());
   String.sub str !cpt (String.length str - !cpt)
 
 (** removes ending zeros of a string *)
