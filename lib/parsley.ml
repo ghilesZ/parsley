@@ -1,13 +1,6 @@
 open Utils
 
-(** the different kinds of litteral corresponding to the (Pconst_int) ast node *)
-type integer_kind =
-  | Native (* 1n *)
-  | Int32  (* 1l *)
-  | Int64  (* 1L *)
-  | Int    (* 1  *)
-
-(** the different kinds of base for litteral numbers *)
+(* the different kinds of base for litteral numbers *)
 (* WARNING: floats can only be in Hexa or Decimal *)
 type base_kind =
   | Hexadecimal    (* 11 *)
@@ -15,26 +8,16 @@ type base_kind =
   | Octal          (* 0o21 *)
   | Binary         (* 0b10001 *)
 
-(** the different kind of notation for floats *)
-type float_notation =
-  | Regular of string            (* 100.5 *)
-  | Scientific of string*string  (* 1.005e2 *)
-
-(** raised when a string does not match the format defined by OCaml's
+(* raised when a string does not match the format defined by OCaml's
    lexer for floats and integer litterals *)
 exception BadFormat of string
 
-(** error msg utility *)
+(* error msg utility *)
 let bad_prefix s =
   let msg = "unrecognized prefix for litterals:" in
   Format.asprintf "%s %s" msg s
 
-(** error msg utility *)
-let bad_suffix s =
-  let msg = "unrecognized suffix for litterals:" in
-  Format.asprintf "%s %c" msg s
-
-(** Removes all occurences of the character '_'  *)
+(* Removes all occurences of the character '_'  *)
 let remove__ s =
   let nb_occ = ref 0 in
   String.iter (function '_' -> incr nb_occ | _ -> ()) s;
@@ -44,19 +27,7 @@ let remove__ s =
                            else Bytes.set s' (i- !nb_cur) c) s;
   Bytes.to_string s'
 
-(** Categorizes a non-empty string into an integer_kind. Returns the
-   pair formed by the string where the suffixes (n,l,L) where removed
-   if present, and the corresponding integer_kind *)
-let categorize_repr int_str =
-  let before_last_idx = String.length int_str -1 in
-  match int_str.[before_last_idx] with
-  | 'n' -> (String.sub int_str 0 before_last_idx), Native
-  | 'l' -> (String.sub int_str 0 before_last_idx), Int32
-  | 'L' -> (String.sub int_str 0 before_last_idx), Int64
-  | '0'..'9' | '_' -> int_str, Int
-  | x -> raise (BadFormat (bad_suffix x))
-
-(** categorizes a non-empty string into a base. Returns the pair
+(* categorizes a non-empty string into a base. Returns the pair
    formed by the string where the prefixes (0o,0x,0b) where removed if
    present, and the corresponding base *)
 let categorize_base str =
@@ -69,20 +40,6 @@ let categorize_base str =
     | ('0'..'9' | '_'),('0'..'9' | '_' | '.') -> str,Decimal
     | _ -> raise (BadFormat (bad_prefix str))
   else str,Decimal
-
-(** Given a non-empty string representation of a float, and a base
-   (either hexa or decimal), computes the associated float_notation *)
-let categorize_notation str base =
-  let char_exp =
-    match base with
-    | Hexadecimal -> 'P'
-    | Decimal -> 'E'
-    | _ -> assert false
-  in
-  match String.split_on_char char_exp str with
-  | [s] -> Regular s
-  | [mant;exp] -> Scientific (mant,exp)
-  | _ -> assert false
 
 let i_of_char = function
   | '0'..'9' as x -> int_of_char x - 48
@@ -98,7 +55,7 @@ let int_of_base = function
   | Octal -> 8
   | Binary -> 2
 
-(** Computes exactly the rational corresponding to the litteral in the
+(* Computes exactly the rational corresponding to the litteral in the
    given base. Works for both integers and floats, for all bases *)
 let parse_base b lit =
   let q_base = Q.of_int b in
@@ -117,7 +74,7 @@ let parse_base b lit =
               ) (Q.zero,q_base) decimal_part in
   Q.add i d
 
-(** Computes exactly the rational corresponding to the litteral in the
+(* Computes exactly the rational corresponding to the litteral in the
    given base. Works for both integers and floats, for all bases, and
    for both scientific and regular notation *)
 let parse_mant_exp b lit =
@@ -137,34 +94,17 @@ let parse_mant_exp b lit =
   | [regular] -> parse_base (int_of_base b) regular
   | _ -> assert false
 
-(** builds the rationnal corresponding to a string following OCaml's
-   lexical conventions :
-	|  (0…9) { 0…9 ∣  _ }
- 	|	 (0x) (0…9∣ A…F∣ a…f) { 0…9∣ A…F∣ a…f∣ _ }
- 	|	 (0o) (0…7) { 0…7∣ _ }
- 	|	 (0b) (0…1) { 0…1∣ _ } *)
 let positive_rat_of_string litteral =
   let str,base = categorize_base litteral in
   let normalized_litteral = remove__ str in
-  let b = match base with
-  | Hexadecimal -> 16
-  | Decimal     -> 10
-  | Octal       -> 8
-  | Binary      -> 2
-  in parse_base b normalized_litteral
+  parse_mant_exp base normalized_litteral
 
-(** builds the rationnal corresponding to a string following OCaml's
-   lexical conventions :
-	| [-] (0…9) { 0…9 ∣  _ }
- 	|	[-] (0x) (0…9∣ A…F∣ a…f) { 0…9∣ A…F∣ a…f∣ _ }
- 	|	[-] (0o) (0…7) { 0…7∣ _ }
- 	|	[-] (0b) (0…1) { 0…1∣ _ } *)
 let rat_of_string lit =
   if lit.[0] = '-' then
     Q.neg (positive_rat_of_string (String.sub lit 1 (String.length lit -1)))
   else (positive_rat_of_string lit)
 
-(** builds an 'of_string' that convert a string representation of a
+(* builds an 'of_string' that convert a string representation of a
    value of a numeric type, to its corresponding value, while
    indicating if a loss of precision occured during the conversion *)
 let build_os num_of_string q_of_num x =
@@ -224,7 +164,8 @@ let exact_64_of_float = exact Int64.of_float Q.of_int64 Q.of_float
 let exact_float_of_native = exact Nativeint.to_float Q.of_float Q.of_nativeint
 let exact_native_of_float = exact Nativeint.of_float Q.of_nativeint Q.of_float
 
-(** exactish string_of_float *)
+(* exactish string_of_float : assuming a float will never have a
+   non-nul digit after the 1000th digit after the dot *)
 let exact_string_of_float f =
   (* overkill precision than trail ending zeros *)
   Format.asprintf "%.1000f" f |> trail_ending_zeros
