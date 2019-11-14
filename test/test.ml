@@ -5,10 +5,6 @@ let ex = function
 
 let nex x = not (ex x)
 
-(* implication and equivalence, useful for testing *)
-let ( => ) a b = if a then b else true
-let ( <=> ) a b = a => b && b => a
-
 (* wrapper that check that no trivially true implication is made *)
 let check_implies ~count ~name gen left right =
   let right_hand = ref false in
@@ -16,8 +12,8 @@ let check_implies ~count ~name gen left right =
     gen (fun i -> if left i then (right_hand:= true; right i) else true)
   |> QCheck.Test.check_exn;
   if not !right_hand then
-    Format.printf "Warning: the implication in %s is true but maybe \
-                   its left-hand side is always false\n" name
+    Format.printf "Warning: the implication in \027[36m%s\027[0m is \
+                   true but maybe its left-hand side is always false\n" name
 
 (* useful constants using Int module *)
 let two_32L = Int32.max_int |> Int64.of_int32
@@ -52,20 +48,25 @@ let int_of_float =
   QCheck.Test.make ~count:1000 ~name:"int_of_float conversions"
     QCheck.float (fun f ->
       let i = Parsley.exact_int_of_float f in
-      (ex i <=> (floor f = f)) &&
-        (nex i <=> (floor f <> f || out_of_range f range_64_f)))
+      if ex i then (floor f = f)
+      else (floor f <> f || out_of_range f range_64_f))
   |> QCheck.Test.check_exn
 
 let int_32_of_64 =
   QCheck.Test.make ~count:1000 ~name:"int64 to int32 conversions"
-    QCheck.int64 (fun i -> nex (Parsley.exact_32_of_64 i) <=>
-                             (out_of_range i range_32L))
+    QCheck.int64 (fun i ->
+      nex (Parsley.exact_32_of_64 i) = (out_of_range i range_32L))
   |> QCheck.Test.check_exn
 
 let int_native_of_64 =
-  check_implies ~count:1000 ~name:"int64 to nativeint conversions"
-    QCheck.int64 (fun i -> nex (Parsley.exact_native_of_64 i))
-    (fun i -> (Nativeint.size=32 && (out_of_range i range_32L)))
+  if Nativeint.size = 32 then
+    check_implies ~count:1000 ~name:"int64 to nativeint conversions"
+      QCheck.int64 (fun i -> nex (Parsley.exact_native_of_64 i))
+      (fun i -> (out_of_range i range_32L))
+  else
+    QCheck.Test.make ~count:1000 ~name:"int32 to int64 conversions"
+      QCheck.int64 (fun i -> ex (Parsley.exact_native_of_64 i))
+    |> QCheck.Test.check_exn
 
 let float_of_64 =
   check_implies ~count:1000 ~name:"int64 to float conversions"
