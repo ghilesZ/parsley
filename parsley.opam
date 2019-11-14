@@ -9,13 +9,16 @@ dev-repo: "git+https://github.com/ghilesZ/parsley"
 license: "MIT"
 build: [
   ["dune" "subst"] {pinned}
-  ["dune" "build" "-p" name "-j" jobs]{with-test}
+  ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
+  ["dune" "build" "-p" name "-j" jobs] {with-test}
 ]
 
 depends: [
   "ocaml" {>= "4.08.0"}
   "dune"  {>= "1.11"}
   "zarith"
+  "odoc" {with-doc}
+  "qcheck" {with-test}
 ]
 
 synopsis: "Parsley library"
