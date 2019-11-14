@@ -6,6 +6,9 @@ during the conversion. It uses the
 [Result](https://caml.inria.fr/pub/docs/manual-ocaml/libref/Result.html)
 module of OCaml to do that as in the following example:
 
+#### Documentation
+You can build locally the documentation by typing `make doc` or consult the online [documentation](https://ghilesz.github.io/parsley/parsley/Parsley/).
+
 ### How?
 Parsley parses the string using arbitrary precision integers and
 rationals (using the Zarith library) and compares the result it
