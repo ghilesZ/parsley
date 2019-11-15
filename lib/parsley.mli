@@ -32,7 +32,6 @@ val exact_float_of_int: int -> (float,float) Result.t
    [Ok i] if [i] is an exact representation of the given float. *)
 val exact_int_of_float: float -> (int, int) Result.t
 
-val exact_float_of_32: Int32.t -> (float, float) Result.t
 val exact_32_of_float: float -> (Int32.t, Int32.t) Result.t
 
 val exact_float_of_64: Int64.t -> (float, float) Result.t

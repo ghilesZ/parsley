@@ -155,7 +155,6 @@ let exact_32_of_native = exact Nativeint.to_int32 Z.of_int32 Z.of_nativeint
 let exact_float_of_int = exact float_of_int Q.of_float Q.of_int
 let exact_int_of_float = exact int_of_float Q.of_int Q.of_float
 
-let exact_float_of_32 = exact Int32.to_float Q.of_float Q.of_int32
 let exact_32_of_float = exact Int32.of_float Q.of_int32 Q.of_float
 
 let exact_float_of_64 = exact Int64.to_float Q.of_float Q.of_int64
