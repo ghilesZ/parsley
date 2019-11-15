@@ -25,13 +25,16 @@ val exact_float_of_string : string -> (float, float option) Result.t
 (** Converts the given integer to a float. It returns [Error f] if [f]
    is an approximated representation of the given integer. It returns
    [Ok f] if [f] is an exact representation of the given integer. *)
-val exact_float_of_int: int -> (float,float) Result.t
+val exact_float_of_int: int -> (float, float) Result.t
 
-(** Converts the given foat to an integer. It returns [Error i] if [i]
+(** Converts the given float to an integer. It returns [Error i] if [i]
    is an approximated representation of the given float. It returns
    [Ok i] if [i] is an exact representation of the given float. *)
 val exact_int_of_float: float -> (int, int) Result.t
 
+(** Converts the given float to an 32-bit integer. It returns [Error i] if [i]
+   is an approximated representation of the given float. It returns
+   [Ok i] if [i] is an exact representation of the given float. *)
 val exact_32_of_float: float -> (Int32.t, Int32.t) Result.t
 
 val exact_float_of_64: Int64.t -> (float, float) Result.t
@@ -45,8 +48,6 @@ val exact_native_of_float: float -> (Nativeint.t, Nativeint.t) Result.t
 (** {2 cross-integers conversions } *)
 (************************************)
 
-
-val exact_int_of_32: Int32.t -> (int, int) Result.t
 val exact_32_of_int: int -> (Int32.t, Int32.t) Result.t
 
 val exact_int_of_64: Int64.t -> (int, int) Result.t
