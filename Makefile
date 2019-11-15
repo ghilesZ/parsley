@@ -10,7 +10,7 @@ build:
 doc:
 	dune build @doc
 	mkdir -p docs/
-	cp -r _build/default/_doc/_html/* docs/
+	cp -r _build/default/_doc/_html/parsley/* docs/
 
 test:
 	dune runtest -f
