@@ -48,6 +48,7 @@ val exact_native_of_float: float -> (Nativeint.t, Nativeint.t) Result.t
 (** {2 cross-integers conversions } *)
 (************************************)
 
+val exact_int_of_32: Int32.t -> (int, int) Result.t
 val exact_32_of_int: int -> (Int32.t, Int32.t) Result.t
 
 val exact_int_of_64: Int64.t -> (int, int) Result.t

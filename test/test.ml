@@ -36,60 +36,45 @@ let range_64_f = mtwo_64f, two_64f
 let in_range x (a,b) = a<=x && x<=b
 let out_of_range x r = not (in_range x r)
 
-let () = Format.printf "Starting tests using QCheck.\n"
-
-let float_of_int =
+let default () =
   check_implies ~count:1000 ~name:"float_of_int conversions"
     QCheck.int
     (fun i -> nex (Parsley.exact_float_of_int i))
-    (fun i -> out_of_range i range_53)
-
-let int_of_float =
+    (fun i -> out_of_range i range_53);
   QCheck.Test.make ~count:1000 ~name:"int_of_float conversions"
     QCheck.float (fun f ->
       let i = Parsley.exact_int_of_float f in
       if ex i then (floor f = f)
       else (floor f <> f || out_of_range f range_64_f))
-  |> QCheck.Test.check_exn
-
-let int_32_of_64 =
+  |> QCheck.Test.check_exn;
   QCheck.Test.make ~count:1000 ~name:"int64 to int32 conversions"
     QCheck.int64 (fun i ->
       nex (Parsley.exact_32_of_64 i) = (out_of_range i range_32L))
-  |> QCheck.Test.check_exn
-
-let int_native_of_64 =
-  if Nativeint.size = 32 then
-    check_implies ~count:1000 ~name:"int64 to nativeint conversions"
-      QCheck.int64 (fun i -> nex (Parsley.exact_native_of_64 i))
-      (fun i -> (out_of_range i range_32L))
-  else
-    QCheck.Test.make ~count:1000 ~name:"int32 to int64 conversions"
-      QCheck.int64 (fun i -> ex (Parsley.exact_native_of_64 i))
-    |> QCheck.Test.check_exn
-
-let float_of_64 =
+  |> QCheck.Test.check_exn;
   check_implies ~count:1000 ~name:"int64 to float conversions"
     QCheck.int64
     (fun i -> nex (Parsley.exact_float_of_64 i))
     (fun i-> (out_of_range i range_53L))
 
-(* tautology *)
-let int_64_of_32 =
+(* these tests can only fail on 32bit machines *)
+let only_32_bits () =
+  check_implies ~count:1000 ~name:"int64 to nativeint conversions"
+    QCheck.int64 (fun i -> nex (Parsley.exact_native_of_64 i))
+    (fun i -> (out_of_range i range_32L))
+
+(* these tests should trivially pass *)
+let tautologies () =
   QCheck.Test.make ~count:1000 ~name:"int32 to int64 conversions"
     QCheck.int32 (fun i -> ex (Parsley.exact_64_of_32 i))
-  |> QCheck.Test.check_exn
-
-(* tautology *)
-let int_64_of_native =
+  |> QCheck.Test.check_exn;
   QCheck.Test.make ~count:1000 ~name:"nativeint to int64 conversions"
     QCheck.int64 (fun i -> ex (Parsley.exact_native_of_64 i))
   |> QCheck.Test.check_exn
 
-(* tautology *)
-let float_of_32 =
-  QCheck.Test.make ~count:1000 ~name:"int32 to float conversions"
-    QCheck.int32 (fun i -> ex (Parsley.exact_float_of_32 i))
-  |> QCheck.Test.check_exn
-
-let () =  Format.printf "All tests sucessfully ran.\n"
+let () =
+  Format.printf "Starting the test using QCheck.\n";
+  default();
+  if Nativeint.size = 32 then only_32_bits()
+  else Format.printf "64-bit architecture detected, skipping the 32-bits tests\n";
+  tautologies();
+  Format.printf "All tests sucessfully ran.\n"
